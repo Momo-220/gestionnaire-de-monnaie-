@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <!-- Fond dégradé -->
+    <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#4158D0;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#C850C0;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    
+    <!-- Cercle de fond -->
+    <circle cx="256" cy="256" r="248" fill="url(#grad)" stroke="white" stroke-width="8"/>
+    
+    <!-- Symbole du portefeuille stylisé -->
+    <path d="M156 186h200c22 0 40 18 40 40v160c0 22-18 40-40 40H156c-22 0-40-18-40-40V226c0-22 18-40 40-40z" 
+          fill="white" opacity="0.9"/>
+    
+    <!-- Détails du portefeuille -->
+    <rect x="336" y="266" width="40" height="80" rx="8" fill="#4158D0"/>
+    
+    <!-- Symbole de l'euro -->
+    <path d="M246 206v200M226 226h40 M226 386h40" 
+          stroke="#4158D0" stroke-width="24" stroke-linecap="round"/>
+</svg> 

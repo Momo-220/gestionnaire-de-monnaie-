@@ -1,7 +1,10 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+error_reporting(0); // Désactiver l'affichage des erreurs PHP
+ini_set('display_errors', 0);
+
+// Déplacer la gestion des sessions et des messages tout au début
+ob_start();
+session_start();
 
 // Initialiser les transactions si elles n'existent pas
 if (!isset($_SESSION['transactions'])) {
@@ -26,6 +29,56 @@ if (isset($_POST['currency'])) {
 // Changement de langue si demandé
 if (isset($_GET['lang']) && in_array($_GET['lang'], ['fr', 'en'])) {
     $_SESSION['lang'] = $_GET['lang'];
+}
+
+// Initialiser le tableau des messages
+if (!isset($_SESSION['messages'])) {
+    $_SESSION['messages'] = [];
+}
+
+// Traitement des actions POST avant tout output
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'add' && isset($_POST['type'])) {
+        try {
+            $transaction = [
+                'id' => uniqid(),
+                'date' => $_POST['date'] ?? date('Y-m-d'),
+                'type' => $_POST['type'],
+                'category' => $_POST['category'] ?? 'others',
+                'description' => $_POST['description'] ?? '',
+                'amount' => floatval($_POST['amount'] ?? 0),
+                'currency' => $_POST['currency'] ?? 'EUR',
+                'payment_method' => $_POST['payment_method'] ?? 'credit_card',
+                'tags' => isset($_POST['tags']) ? explode(',', $_POST['tags']) : [],
+                'created_at' => time()
+            ];
+            $_SESSION['messages'][] = ['type' => 'success', 'text' => 'Transaction ajoutée avec succès !'];
+            $_SESSION['transactions'][] = $transaction;
+        } catch (Exception $e) {
+            $_SESSION['messages'][] = ['type' => 'danger', 'text' => 'Erreur lors de l\'ajout de la transaction : ' . $e->getMessage()];
+        }
+    } elseif ($_POST['action'] === 'delete' && isset($_POST['transaction_id'])) {
+        try {
+            $oldCount = count($_SESSION['transactions']);
+            $_SESSION['transactions'] = array_filter($_SESSION['transactions'], function($t) {
+                return $t['id'] !== $_POST['transaction_id'];
+            });
+            if (count($_SESSION['transactions']) < $oldCount) {
+                $_SESSION['messages'][] = ['type' => 'success', 'text' => 'Transaction supprimée avec succès !'];
+            } else {
+                $_SESSION['messages'][] = ['type' => 'warning', 'text' => 'Transaction non trouvée.'];
+            }
+        } catch (Exception $e) {
+            $_SESSION['messages'][] = ['type' => 'danger', 'text' => 'Erreur lors de la suppression : ' . $e->getMessage()];
+        }
+    }
+    header('Location: /dashboard');
+    exit;
+}
+
+// Fonction pour ajouter un message
+function addMessage($type, $text) {
+    $_SESSION['messages'][] = ['type' => $type, 'text' => $text];
 }
 
 // Tableau des traductions
@@ -149,31 +202,6 @@ $currencies = [
 
 // Devise par défaut
 $defaultCurrency = $_SESSION['default_currency'];
-
-// Traitement de l'ajout d'une transaction
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'add') {
-        $transaction = [
-            'id' => uniqid(),
-            'date' => $_POST['date'],
-            'type' => $_POST['type'],
-            'category' => $_POST['category'],
-            'description' => $_POST['description'],
-            'amount' => floatval($_POST['amount']),
-            'currency' => $_POST['currency'],
-            'payment_method' => $_POST['payment_method'],
-            'tags' => isset($_POST['tags']) ? explode(',', $_POST['tags']) : [],
-            'created_at' => time()
-        ];
-        $_SESSION['transactions'][] = $transaction;
-    } elseif ($_POST['action'] === 'delete' && isset($_POST['transaction_id'])) {
-        $_SESSION['transactions'] = array_filter($_SESSION['transactions'], function($t) {
-            return $t['id'] !== $_POST['transaction_id'];
-        });
-    }
-    header('Location: /dashboard');
-    exit;
-}
 
 // Filtres
 $currentMonth = date('Y-m');
@@ -759,6 +787,17 @@ function formatAmount($amount, $currency) {
     </nav>
 
     <div class="container mt-4">
+        <!-- Zone des messages -->
+        <?php if (!empty($_SESSION['messages'])): ?>
+            <?php foreach ($_SESSION['messages'] as $message): ?>
+                <div class="alert alert-<?php echo $message['type']; ?> alert-dismissible fade show" role="alert">
+                    <?php echo $message['text']; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endforeach; ?>
+            <?php $_SESSION['messages'] = []; // Vider les messages après affichage ?>
+        <?php endif; ?>
+
         <!-- Filtres -->
         <div class="card mb-4">
             <div class="card-body p-3">

@@ -13,6 +13,16 @@ if (!isset($_SESSION['lang'])) {
     $_SESSION['lang'] = 'fr';
 }
 
+// Initialisation de la devise par défaut
+if (!isset($_SESSION['default_currency'])) {
+    $_SESSION['default_currency'] = 'EUR';
+}
+
+// Mise à jour de la devise par défaut si demandé
+if (isset($_POST['currency'])) {
+    $_SESSION['default_currency'] = $_POST['currency'];
+}
+
 // Changement de langue si demandé
 if (isset($_GET['lang']) && in_array($_GET['lang'], ['fr', 'en'])) {
     $_SESSION['lang'] = $_GET['lang'];
@@ -137,8 +147,8 @@ $currencies = [
     'TRY' => '₺'
 ];
 
-// Devise par défaut si non spécifiée
-$defaultCurrency = 'EUR';
+// Devise par défaut
+$defaultCurrency = $_SESSION['default_currency'];
 
 // Traitement de l'ajout d'une transaction
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {

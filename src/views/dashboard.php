@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Initialiser les transactions si elles n'existent pas
 if (!isset($_SESSION['transactions'])) {

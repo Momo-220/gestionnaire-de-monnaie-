@@ -1,0 +1,32 @@
+name: app
+
+type: php:8.1
+
+disk: 512
+
+hooks:
+    build: |
+        set -e
+
+relationships:
+    database: "db:mysql"
+
+web:
+    locations:
+        "/":
+            root: "/"
+            index:
+                - index.php
+            scripts: true
+            allow: true
+            passthru: /index.php
+
+mounts:
+    "/var/cache": "shared:files/cache"
+    "/var/log": "shared:files/log"
+    "/var/sessions": "shared:files/sessions"
+
+variables:
+    php:
+        display_errors: Off
+        memory_limit: 256M 

@@ -3,12 +3,8 @@
     "description": "Application de gestion de dépenses personnelles",
     "type": "project",
     "require": {
-        "php": "^8.0",
-        "ext-json": "*",
-        "google/cloud-firestore": "^1.37",
-        "vlucas/phpdotenv": "^5.5",
-        "dompdf/dompdf": "^2.0",
-        "paragonie/sodium_compat": "^1.19"
+        "php": "^7.4|^8.0",
+        "ext-json": "*"
     },
     "autoload": {
         "psr-4": {

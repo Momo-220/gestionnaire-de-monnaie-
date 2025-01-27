@@ -6,9 +6,6 @@ RUN apt-get update && apt-get install -y \
     zip \
     && docker-php-ext-install zip
 
-# Activation des extensions PHP nécessaires
-RUN docker-php-ext-install json
-
 # Activation du module rewrite d'Apache
 RUN a2enmod rewrite
 

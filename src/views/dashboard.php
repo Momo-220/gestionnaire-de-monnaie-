@@ -899,7 +899,10 @@ function formatAmount($amount, $currency) {
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <i class="bi bi-tag me-2"></i>
-                                        <?php echo htmlspecialchars($t['category']); ?>
+                                        <?php 
+                                        $categoryKey = 'categories.' . $t['category'];
+                                        echo t($categoryKey);
+                                        ?>
                                     </div>
                                 </td>
                                 <td><?php echo htmlspecialchars($t['description']); ?></td>
@@ -909,7 +912,10 @@ function formatAmount($amount, $currency) {
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <i class="bi bi-credit-card me-2"></i>
-                                        <?php echo htmlspecialchars($t['payment_method'] ?? 'N/A'); ?>
+                                        <?php 
+                                        $methodKey = 'payment_methods.' . ($t['payment_method'] ?? 'credit_card');
+                                        echo t($methodKey);
+                                        ?>
                                     </div>
                                 </td>
                                 <td>

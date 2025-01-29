@@ -6,15 +6,19 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.+)$ index.php [QSA,L]
 
-# Protection des fichiers sensibles
-<FilesMatch "^\.env">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
+# Forcer HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Sécurité supplémentaire
-Options -Indexes
-ServerSignature Off
+# Headers de sécurité
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+# Content Security Policy
+Header always set Content-Security-Policy "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' https:; font-src 'self' https: data:;"
 
 # Compression GZIP
 <IfModule mod_deflate.c>
@@ -29,14 +33,6 @@ ServerSignature Off
     AddOutputFilterByType DEFLATE application/x-javascript
 </IfModule>
 
-# Headers de sécurité
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-</IfModule>
-
 # Cache Control
 <IfModule mod_expires.c>
     ExpiresActive On
@@ -44,6 +40,21 @@ ServerSignature Off
     ExpiresByType image/jpeg "access plus 1 year"
     ExpiresByType image/gif "access plus 1 year"
     ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
     ExpiresByType text/css "access plus 1 month"
     ExpiresByType application/javascript "access plus 1 month"
-</IfModule> 
+</IfModule>
+
+# Protection des fichiers sensibles
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Désactiver l'affichage du contenu des répertoires
+Options -Indexes
+
+# Redirection des erreurs
+ErrorDocument 404 /404.html
+ErrorDocument 403 /403.html
+ErrorDocument 500 /500.html 

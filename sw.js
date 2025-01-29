@@ -1,17 +1,12 @@
-const CACHE_NAME = 'expense-manager-v1';
+const CACHE_NAME = 'coins-manage-v1';
 const ASSETS_TO_CACHE = [
     '/',
+    '/index.html',
     '/dashboard',
     '/manifest.json',
-    '/icon.html',
-    '/icons/icon-72x72.png',
-    '/icons/icon-96x96.png',
-    '/icons/icon-128x128.png',
-    '/icons/icon-144x144.png',
-    '/icons/icon-152x152.png',
     '/icons/icon-192x192.png',
-    '/icons/icon-384x384.png',
     '/icons/icon-512x512.png',
+    '/icons/favicon.ico',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css',
     'https://cdn.jsdelivr.net/npm/chart.js',
@@ -23,6 +18,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
+                console.log('Cache ouvert');
                 return cache.addAll(ASSETS_TO_CACHE);
             })
     );
@@ -43,32 +39,73 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Stratégie de cache : Network First avec fallback sur le cache
+// Interception des requêtes
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        fetch(event.request)
+        caches.match(event.request)
             .then((response) => {
-                // Mise en cache de la nouvelle réponse
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME)
-                    .then((cache) => {
-                        cache.put(event.request, responseClone);
-                    });
-                return response;
-            })
-            .catch(() => {
-                // Si offline, on utilise le cache
-                return caches.match(event.request)
-                    .then((response) => {
-                        if (response) {
+                // Cache hit - return response
+                if (response) {
+                    return response;
+                }
+
+                return fetch(event.request).then(
+                    (response) => {
+                        // Vérifier si la réponse est valide
+                        if(!response || response.status !== 200 || response.type !== 'basic') {
                             return response;
                         }
-                        // Si la ressource n'est pas en cache, on retourne une page d'erreur
-                        if (event.request.mode === 'navigate') {
-                            return caches.match('/offline.html');
-                        }
-                        return new Response('Offline');
-                    });
+
+                        // Cloner la réponse
+                        const responseToCache = response.clone();
+
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                cache.put(event.request, responseToCache);
+                            });
+
+                        return response;
+                    }
+                );
             })
     );
+});
+
+// Gestion des notifications push
+self.addEventListener('push', (event) => {
+    const options = {
+        body: event.data.text(),
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge.png',
+        vibrate: [100, 50, 100],
+        data: {
+            dateOfArrival: Date.now(),
+            primaryKey: 1
+        },
+        actions: [
+            {
+                action: 'explore',
+                title: 'Voir les détails',
+                icon: '/icons/checkmark.png'
+            },
+            {
+                action: 'close',
+                title: 'Fermer',
+                icon: '/icons/xmark.png'
+            },
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification('Coins Manage', options)
+    );
+});
+
+// Gestion des clics sur les notifications
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    if (event.action === 'explore') {
+        clients.openWindow('/dashboard');
+    }
 }); 

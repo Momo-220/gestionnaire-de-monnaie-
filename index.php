@@ -14,9 +14,13 @@ if ($basePath === '/') $basePath = '';
 // Retirer le chemin de base de la requête
 $request = str_replace($basePath, '', $request);
 
+// Vérifier si l'utilisateur est sur la page d'accueil
+if ($request === '' || $request === '/') {
+    header('Location: /dashboard');
+    exit;
+}
+
 switch ($request) {
-    case '':
-    case '/':
     case '/dashboard':
         require __DIR__ . '/src/views/dashboard.php';
         break;

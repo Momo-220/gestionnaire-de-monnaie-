@@ -1,24 +1,22 @@
 RewriteEngine On
 RewriteBase /
 
-# Rediriger toutes les requêtes vers index.php sauf pour les fichiers existants
+# Ne pas appliquer les règles aux fichiers et dossiers existants
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.+)$ index.php [QSA,L]
 
-# Forcer HTTPS
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Rediriger toutes les requêtes vers index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
 
-# Headers de sécurité
-Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-Header always set X-Frame-Options "SAMEORIGIN"
-Header always set X-Content-Type-Options "nosniff"
-Header always set X-XSS-Protection "1; mode=block"
-Header always set Referrer-Policy "strict-origin-when-cross-origin"
+# Protection des fichiers sensibles
+<FilesMatch "^\.env">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
 
-# Content Security Policy
-Header always set Content-Security-Policy "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' https:; font-src 'self' https: data:;"
+# Sécurité supplémentaire
+Options -Indexes
+ServerSignature Off
 
 # Compression GZIP
 <IfModule mod_deflate.c>
@@ -33,6 +31,14 @@ Header always set Content-Security-Policy "default-src 'self' https: data: 'unsa
     AddOutputFilterByType DEFLATE application/x-javascript
 </IfModule>
 
+# Headers de sécurité
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
 # Cache Control
 <IfModule mod_expires.c>
     ExpiresActive On
@@ -40,21 +46,6 @@ Header always set Content-Security-Policy "default-src 'self' https: data: 'unsa
     ExpiresByType image/jpeg "access plus 1 year"
     ExpiresByType image/gif "access plus 1 year"
     ExpiresByType image/png "access plus 1 year"
-    ExpiresByType image/svg+xml "access plus 1 year"
     ExpiresByType text/css "access plus 1 month"
     ExpiresByType application/javascript "access plus 1 month"
-</IfModule>
-
-# Protection des fichiers sensibles
-<FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-# Désactiver l'affichage du contenu des répertoires
-Options -Indexes
-
-# Redirection des erreurs
-ErrorDocument 404 /404.html
-ErrorDocument 403 /403.html
-ErrorDocument 500 /500.html 
+</IfModule> 

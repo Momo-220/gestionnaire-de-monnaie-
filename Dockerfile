@@ -1,16 +1,16 @@
 FROM php:8.1-apache
 
-# Installation des dépendances
+# Installation des dépendances nécessaires
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     && docker-php-ext-install zip
 
-# Activation des modules Apache nécessaires
-RUN a2enmod rewrite headers expires deflate
+# Activation du module rewrite d'Apache
+RUN a2enmod rewrite
 
 # Configuration d'Apache
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+COPY .htaccess /var/www/html/
 
 # Copie des fichiers de l'application
 COPY . /var/www/html/

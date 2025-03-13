@@ -124,7 +124,8 @@ $translations = [
             'transfer' => 'Virement',
             'check' => 'Chèque',
             'direct_debit' => 'Prélèvement'
-        ]
+        ],
+        'reset_splash' => 'Réinitialiser l\'écran d\'accueil'
     ],
     'en' => [
         'dashboard_title' => 'Dashboard - Expense Manager',
@@ -167,7 +168,8 @@ $translations = [
             'transfer' => 'Transfer',
             'check' => 'Check',
             'direct_debit' => 'Direct Debit'
-        ]
+        ],
+        'reset_splash' => 'Reset splash screen'
     ]
 ];
 
@@ -298,11 +300,12 @@ function formatAmount($amount, $currency) {
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dépenses">
-    
+
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/svg+xml" href="/icon.html">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-    
+    <link rel="shortcut icon" href="/icon.svg" type="image/svg+xml">
+
     <title><?php echo t('dashboard_title'); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
@@ -754,9 +757,99 @@ function formatAmount($amount, $currency) {
             color: rgba(255, 255, 255, 0.5);
             margin: 0 5px;
         }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4158D0 0%, #C850C0 50%, #FFCC70 100%);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+
+        [data-theme="dark"] #splash-screen {
+            background: linear-gradient(135deg, #2A3A80 0%, #8A3A80 50%, #CC9950 100%);
+        }
+
+        .splash-content {
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+
+        .splash-logo {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .splash-logo i {
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+        }
+
+        .splash-content h1 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .splash-loader {
+            width: 200px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .splash-loader-bar {
+            height: 100%;
+            width: 0;
+            background: white;
+            animation: loading 2s ease-in-out forwards;
+        }
+
+        .splash-hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes loading {
+            0% { width: 0; }
+            20% { width: 20%; }
+            50% { width: 50%; }
+            80% { width: 80%; }
+            100% { width: 100%; }
+        }
     </style>
 </head>
 <body class="bg-light">
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <h1>Gestionnaire de Dépenses</h1>
+            <div class="splash-loader">
+                <div class="splash-loader-bar"></div>
+            </div>
+        </div>
+    </div>
+
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="/dashboard">
@@ -1108,16 +1201,59 @@ function formatAmount($amount, $currency) {
         </div>
     </div>
 
+    <footer class="footer mt-5 py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text-muted">&copy; 2023 Gestionnaire de Dépenses</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button id="reset-splash" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise me-1"></i> <?php echo t('reset_splash'); ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Theme Switcher
         document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('theme-toggle');
+            // Gestion du splash screen
+            const splashScreen = document.getElementById('splash-screen');
             
-            // Charger le thème sauvegardé
+            // Vérifier si c'est la première visite ou un rechargement
+            const isFirstVisit = !sessionStorage.getItem('appLaunched');
+            
+            // Appliquer le thème au splash screen
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.body.setAttribute('data-theme', savedTheme);
+            
+            if (isFirstVisit) {
+                // Première visite : afficher le splash screen pendant 2.5 secondes
+                sessionStorage.setItem('appLaunched', 'true');
+                
+                // Animation de chargement
+                setTimeout(() => {
+                    splashScreen.classList.add('splash-hidden');
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
+                        // Activer les transitions après le splash screen
+                        document.body.classList.add('transitions-enabled');
+                    }, 500);
+                }, 2500);
+            } else {
+                // Visite ultérieure : masquer immédiatement le splash screen
+                splashScreen.style.display = 'none';
+                // Activer les transitions immédiatement
+                document.body.classList.add('transitions-enabled');
+            }
+            
+            // Reste du code existant
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            // Charger le thème sauvegardé
             themeToggle.checked = savedTheme === 'dark';
 
             // Gérer le changement de thème
@@ -1130,6 +1266,15 @@ function formatAmount($amount, $currency) {
                 // Mettre à jour les graphiques avec des couleurs adaptées au thème
                 updateChartsTheme(theme);
             });
+
+            // Réinitialiser le splash screen pour les démonstrations
+            const resetSplashBtn = document.getElementById('reset-splash');
+            if (resetSplashBtn) {
+                resetSplashBtn.addEventListener('click', function() {
+                    sessionStorage.removeItem('appLaunched');
+                    location.reload();
+                });
+            }
         });
 
         // Fonction pour mettre à jour les thèmes des graphiques

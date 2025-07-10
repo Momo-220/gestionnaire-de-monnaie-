@@ -1,136 +1,115 @@
-# Application de Gestion des Dépenses
+# Personal Expense Manager
 
-Une application web PHP moderne pour gérer vos dépenses personnelles, utilisant Firebase pour l'authentification et le stockage des données.
+A modern and intuitive Progressive Web Application (PWA) for managing personal finances and tracking expenses.
+
+## Overview
+
+Personal Expense Manager is a user-friendly application that helps you track your income and expenses, categorize transactions, and visualize your financial data through interactive charts and reports.
+
+## Features
+
+- **Transaction Management**
+  - Add income and expenses
+  - Categorize transactions
+  - Add descriptions and tags
+  - Multiple currency support
+  - Various payment methods
+
+- **Financial Overview**
+  - Total balance tracking
+  - Monthly evolution charts
+  - Expense distribution visualization
+  - Recent transactions list
+
+- **Data Export**
+  - Export transactions to CSV
+  - Generate PDF reports
+
+- **User Experience**
+  - Responsive design
+  - Multi-language support (English/French)
+  - Offline functionality (PWA)
+  - Secure authentication
+
+## Architecture
+
+```
+project/
+├── api/               # API endpoints
+├── src/
+│   ├── Auth/         # Authentication management
+│   ├── Config/       # Application configuration
+│   ├── Controllers/  # Application logic
+│   ├── Models/       # Data models
+│   └── Views/        # User interface templates
+├── public/           # Public assets
+└── vendor/           # Dependencies
+```
+
+## Technologies Used
+
+- **Backend**: PHP 8.1
+- **Server**: Apache
+- **Database**: MySQL
+- **Frontend**: HTML5, CSS3, JavaScript
+- **Container**: Docker
+- **PWA Features**: Service Workers
+
+---
+
+# Gestionnaire de Dépenses Personnelles
+
+Une application web progressive (PWA) moderne et intuitive pour la gestion des finances personnelles et le suivi des dépenses.
+
+## Aperçu
+
+Le Gestionnaire de Dépenses Personnelles est une application conviviale qui vous aide à suivre vos revenus et dépenses, à catégoriser vos transactions et à visualiser vos données financières à travers des graphiques et rapports interactifs.
 
 ## Fonctionnalités
 
-- Authentification des utilisateurs (inscription/connexion)
-- Ajout, suppression et visualisation des transactions
-- Catégorisation des dépenses et revenus
-- Graphiques de visualisation des dépenses
-- Export des données en CSV et PDF
-- Interface responsive et moderne
+- **Gestion des Transactions**
+  - Ajout de revenus et dépenses
+  - Catégorisation des transactions
+  - Ajout de descriptions et tags
+  - Support multi-devises
+  - Différents moyens de paiement
 
-## Prérequis
+- **Vue d'Ensemble Financière**
+  - Suivi du solde total
+  - Graphiques d'évolution mensuelle
+  - Visualisation de la répartition des dépenses
+  - Liste des transactions récentes
 
-- PHP 8.1 ou supérieur
-- Composer
-- Compte Firebase
-- Serveur web (Apache/Nginx)
-- Extensions PHP requises :
-  - PDO
-  - JSON
-  - OpenSSL
-  - Mbstring
+- **Export de Données**
+  - Export des transactions en CSV
+  - Génération de rapports PDF
 
-## Installation
+- **Expérience Utilisateur**
+  - Design responsive
+  - Support multilingue (Anglais/Français)
+  - Fonctionnalité hors-ligne (PWA)
+  - Authentification sécurisée
 
-1. Clonez le dépôt :
-```bash
-git clone [URL_DU_REPO]
-cd gestion-depenses
+## Architecture
+
+```
+project/
+├── api/               # Points d'entrée API
+├── src/
+│   ├── Auth/         # Gestion de l'authentification
+│   ├── Config/       # Configuration de l'application
+│   ├── Controllers/  # Logique de l'application
+│   ├── Models/       # Modèles de données
+│   └── Views/        # Templates d'interface utilisateur
+├── public/           # Ressources publiques
+└── vendor/           # Dépendances
 ```
 
-2. Installez les dépendances :
-```bash
-composer install
-```
+## Technologies Utilisées
 
-3. Copiez le fichier .env.example en .env :
-```bash
-cp .env.example .env
-```
-
-4. Configurez Firebase :
-   - Créez un projet sur [Firebase Console](https://console.firebase.google.com)
-   - Générez une nouvelle clé privée pour le service account
-   - Remplissez les variables d'environnement dans le fichier .env avec vos informations Firebase
-
-5. Configurez les permissions :
-```bash
-chmod -R 755 .
-chmod -R 777 storage
-```
-
-## Configuration Firebase
-
-1. Dans la console Firebase :
-   - Activez Authentication avec email/password
-   - Créez une base de données Firestore
-   - Configurez les règles de sécurité Firestore
-
-2. Règles de sécurité Firestore recommandées :
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    match /transactions/{transactionId} {
-      allow read, write: if request.auth != null && resource.data.user_id == request.auth.uid;
-    }
-  }
-}
-```
-
-## Configuration du Serveur Web
-
-### Apache
-
-Le fichier .htaccess est déjà configuré. Assurez-vous que mod_rewrite est activé :
-```bash
-a2enmod rewrite
-service apache2 restart
-```
-
-### Nginx
-
-Exemple de configuration :
-```nginx
-server {
-    listen 80;
-    server_name votre-domaine.com;
-    root /chemin/vers/votre/app;
-
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-```
-
-## Utilisation
-
-1. Accédez à l'application via votre navigateur
-2. Créez un compte ou connectez-vous
-3. Commencez à enregistrer vos transactions
-
-## Sécurité
-
-- Les mots de passe sont hashés avec password_hash()
-- Protection contre les injections SQL via Firebase
-- Protection XSS via htmlspecialchars()
-- Variables d'environnement pour les informations sensibles
-- Validation des entrées utilisateur
-
-## Maintenance
-
-Pour mettre à jour les dépendances :
-```bash
-composer update
-```
-
-## Support
-
-Pour toute question ou problème, veuillez ouvrir une issue sur le dépôt GitHub.
-
-## Licence
-
-MIT License 
+- **Backend** : PHP 8.1
+- **Serveur** : Apache
+- **Base de données** : MySQL
+- **Frontend** : HTML5, CSS3, JavaScript
+- **Conteneur** : Docker
+- **Fonctionnalités PWA** : Service Workers 
